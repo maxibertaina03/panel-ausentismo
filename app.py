@@ -343,7 +343,7 @@ try:
         filtered_df = filtered_df[filtered_df['Ausente'] > 0]
     
     # Métricas principales
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         st.metric(
@@ -377,6 +377,23 @@ try:
             delta=f"{art_percent:.1f}%"
         )
     
+    with col5:
+        # Calcular días totales trabajables
+        num_empleados = len(filtered_totals) if len(filtered_totals) > 0 else 30
+        dias_trabajables = 5 * 52 * num_empleados  # 260 días por empleado
+        
+        # Días de ausentismo (Ausente + ART, SIN vacaciones)
+        dias_ausentismo = filtered_totals['Ausente'].sum() + filtered_totals['ART'].sum()
+        
+        # Porcentaje
+        porcentaje_ausentismo = (dias_ausentismo / dias_trabajables * 100) if dias_trabajables > 0 else 0
+        
+        st.metric(
+            label="📊 % Ausentismo",
+            value=f"{porcentaje_ausentismo:.2f}%",
+            delta=f"{dias_ausentismo} días"
+        )
+
     # Tabs principales
     tab1, tab2, tab3, tab4 = st.tabs(["📊 Panel de control", "👤 Análisis Individual", "🔍 Análisis Detallado", "💾 Exportar"])
     
@@ -481,7 +498,20 @@ try:
                     st.metric("Días de vacaciones", emp_total_row['Vacaciones'])
                 with col4:
                     st.metric("Días ART", emp_total_row['ART'])
-                
+                with col5:
+                    # Días trabajables por empleado individual (260 por año)
+                    dias_trabajables_emp = 260
+                    
+                    # Ausentismo individual (Ausente + ART, sin vacaciones)
+                    dias_ausentismo_emp = emp_total_row['Ausente'] + emp_total_row['ART']
+                    
+                    # Porcentaje individual
+                    porcentaje_ausentismo_emp = (dias_ausentismo_emp / dias_trabajables_emp * 100) if dias_trabajables_emp > 0 else 0
+                    
+                    st.metric(
+                        "% Ausentismo", 
+                        f"{porcentaje_ausentismo_emp:.2f}%"
+                    )
                 # Gráficos del empleado
                 col1, col2 = st.columns(2)
                 
